@@ -1,6 +1,6 @@
 # Formatting
 
-An example code for [https://kean.blog/post/formatted-strings]. Demonstrates how to implement basic string formatting using XML tags. 
+An example code for [kean.blog: Formatted Localizable Strings](https://kean.blog/post/formatted-strings). Demonstrates how to implement basic string formatting using XML tags. 
 
 ```swift
 let input = "M1 delivers up to <b>2.8x faster</b> processing performance than the <a href='%@'>previous generation.</a>"
