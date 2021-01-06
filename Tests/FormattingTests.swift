@@ -138,6 +138,22 @@ class FormattingsTests: XCTestCase {
             XCTAssertEqual(font.pointSize, 20)
         }
     }
+
+    func testLineBreaks() throws {
+        // GIVEN
+        let style = FormattedStringStyle(attributes: [
+            "body": [.font: UIFont(name: "HelveticaNeue-Light", size: 20)!]
+        ])
+
+        func format(_ string: String) -> String {
+            NSAttributedString(formatting: string, style: style).string
+        }
+
+        // WHEN/THEN
+        XCTAssertEqual(format("a<br>b"), "a\u{2028}b")
+        XCTAssertEqual(format("a<br/>b"), "a\u{2028}b")
+        XCTAssertEqual(format("a<br />b"), "a\u{2028}b")
+    }
 }
 
 private extension NSAttributedString {
