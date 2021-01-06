@@ -100,6 +100,44 @@ class FormattingsTests: XCTestCase {
             XCTAssertEqual(font.pointSize, 20)
         }
     }
+
+    func testLinkWithAmpersands() throws {
+        // GIVEN
+        let style = FormattedStringStyle(attributes: [
+            "body": [.font: UIFont(name: "HelveticaNeue-Light", size: 20)!]
+        ])
+
+        // WHEN
+        let input = "Tap <a href=\"https://google.com?a=1&b=2\">this</a>"
+        let output = NSAttributedString(formatting: input, style: style)
+
+        // THEN
+        let allAttributes = output.attributes
+        XCTAssertEqual(allAttributes.count, 2)
+
+        XCTAssertEqual(output.string, "Tap this")
+
+        do {
+            let body = try XCTUnwrap(allAttributes.first { $0.range == NSRange(0..<4) }?.attributes)
+            XCTAssertEqual(body.count, 1)
+
+            let font = try XCTUnwrap(body[.font] as? UIFont)
+            XCTAssertEqual(font.fontName, "HelveticaNeue-Light")
+            XCTAssertEqual(font.pointSize, 20)
+        }
+
+        do {
+            let link = try XCTUnwrap(allAttributes.first { $0.range == NSRange(4..<8) }?.attributes)
+            XCTAssertEqual(link.count, 2)
+
+            let url = try XCTUnwrap(link[.link] as? URL)
+            XCTAssertEqual(url.absoluteString, "https://google.com?a=1&b=2")
+
+            let font = try XCTUnwrap(link[.font] as? UIFont)
+            XCTAssertEqual(font.fontName, "HelveticaNeue-Light")
+            XCTAssertEqual(font.pointSize, 20)
+        }
+    }
 }
 
 private extension NSAttributedString {

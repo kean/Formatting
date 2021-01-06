@@ -66,13 +66,45 @@ private final class Parser: NSObject, XMLParserDelegate {
         return makeAttributedString()
     }
 
+    private static let hrefRegex = try? Regex("<a href=\"([^\"]+)\">")
+
     private func preprocess(_ string: String) -> String {
+        var string = string
+
         // Replaces '<br>' with "line separtor" (doesn't separate paragraphs).
         // To separate paragraphs, use '\b'.
-        let string = string.replacingOccurrences(of: "<br>", with: "\u{2028}")
+        string = string.replacingOccurrences(of: "<br ?/?>", with: "\u{2028}", options: .regularExpression, range: nil)
+
+        // Sanitize URLs by replacing & (unsupported in XML and strict HTML) with &amp;
+        string = preprocessLinks(string)
 
         // Enclose the string in a `<body>` tag to make it proper XML.
         return "<body>\(string)</body>"
+    }
+
+    private func preprocessLinks(_ string: String) -> String {
+        guard let regex = Parser.hrefRegex else {
+            return string
+        }
+        return regex.replaceMatches(in: string, sanitizeURL)
+    }
+
+    private func sanitizeURL(_ url: Substring) -> String? {
+        guard url.contains("&") else {
+            return nil
+        }
+        guard var comp = URLComponents(string: String(url)) else {
+            return nil
+        }
+        let query = (comp.queryItems ?? [])
+            .map { "\($0.name)=\($0.value ?? "")" }
+            .joined(separator: "&amp;")
+        comp.queryItems = nil
+        var output = comp.url?.absoluteString
+        if !query.isEmpty {
+            output?.append("?\(query)")
+        }
+        return output
     }
 
     private func makeAttributedString() -> NSAttributedString {
@@ -112,5 +144,56 @@ private final class Parser: NSObject, XMLParserDelegate {
 
     func parserDidEndDocument(_ parser: XMLParser) {
         // If parsing fails
+    }
+}
+
+// MARK: - Regex
+
+final class Regex {
+    private let regex: NSRegularExpression
+
+    init(_ pattern: String, _ options: NSRegularExpression.Options = []) throws {
+        self.regex = try NSRegularExpression(pattern: pattern, options: options)
+    }
+
+    func isMatch(_ s: String) -> Bool {
+        let range = NSRange(s.startIndex..<s.endIndex, in: s)
+        return regex.firstMatch(in: s, options: [], range: range) != nil
+    }
+
+    func matches(in s: String) -> [Match] {
+        let range = NSRange(s.startIndex..<s.endIndex, in: s)
+        let matches = regex.matches(in: s, options: [], range: range)
+        return matches.map { match in
+            let ranges = (0..<match.numberOfRanges)
+                .map(match.range(at:))
+                .filter { $0.location != NSNotFound }
+            return Match(
+                fullMatch: s[Range(match.range, in: s)!],
+                groups: ranges.dropFirst().map { s[Range($0, in: s)!] }
+            )
+        }
+    }
+
+    func replaceMatches(in string: String, _ transform: (Substring) -> String?) -> String {
+        var offset = 0
+        var string = string
+        for group in matches(in: string).flatMap(\.groups) {
+            guard let replacement = transform(group) else {
+                continue
+            }
+            let startIndex = string.index(group.startIndex, offsetBy: offset)
+            let endIndex = string.index(group.endIndex, offsetBy: offset)
+            string.replaceSubrange(startIndex..<endIndex, with: replacement)
+            offset += replacement.count - group.count
+        }
+        return string
+    }
+}
+
+extension Regex {
+    struct Match {
+        let fullMatch: Substring
+        let groups: [Substring]
     }
 }
