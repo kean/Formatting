@@ -72,7 +72,7 @@ class FormattingsTests: XCTestCase {
         ])
 
         // WHEN
-        let input = "Tap <a href=\"https://google.com\">this</a>"
+        let input = "Tap <a class='custom-class' href=\"https://google.com\">this</a>"
         let output = NSAttributedString(formatting: input, style: style)
 
         // THEN

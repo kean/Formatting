@@ -66,7 +66,7 @@ private final class Parser: NSObject, XMLParserDelegate {
         return makeAttributedString()
     }
 
-    private static let hrefRegex = try? Regex("<a href=\"([^\"]+)\">")
+    private static let hrefRegex = try? Regex("<a[^>]*?href=\"([^\"]+)\">")
 
     private func preprocess(_ string: String) -> String {
         var string = string
