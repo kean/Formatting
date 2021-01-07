@@ -22,9 +22,12 @@ public extension NSAttributedString {
     /// Thread safe.
     convenience init(formatting string: String, style: FormattedStringStyle) {
         let parser = Parser(style: style)
-        let output = parser.parse(string)
-        assert(output != nil, "Failed to format the given string: \(string)")
-        self.init(attributedString: output ?? NSAttributedString(string: string))
+        do {
+            let output = try parser.parse(string)
+            self.init(attributedString: output)
+        } catch {
+            self.init(string: string, attributes: style.attributes(forElement: "body", attributes: [:]))
+        }
     }
 }
 
@@ -45,6 +48,7 @@ private final class Parser: NSObject, XMLParserDelegate {
     private let style: FormattedStringStyle
     private var elements = [Element]()
     private var attributes = [(NSRange, [NSAttributedString.Key: Any])]()
+    private var parseError: Error?
 
     private struct Element {
         let name: String
@@ -56,13 +60,16 @@ private final class Parser: NSObject, XMLParserDelegate {
         self.style = style
     }
 
-    func parse(_ string: String) -> NSAttributedString? {
+    func parse(_ string: String) throws -> NSAttributedString {
         guard let data = preprocess(string).data(using: .utf8) else {
-            return nil
+            throw NSError(domain: "com.github.parser", code: -1, userInfo: [NSDebugDescriptionErrorKey: "Failed to process the input string"])
         }
         let parser = XMLParser(data: data)
         parser.delegate = self
         parser.parse()
+        if let parseError = self.parseError {
+            throw parseError
+        }
         return makeAttributedString()
     }
 
@@ -142,8 +149,12 @@ private final class Parser: NSObject, XMLParserDelegate {
         text.append(string)
     }
 
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        self.parseError = parseError
+    }
+
     func parserDidEndDocument(_ parser: XMLParser) {
-        // If parsing fails
+        // Do nothing
     }
 }
 
