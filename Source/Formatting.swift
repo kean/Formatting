@@ -52,7 +52,7 @@ private final class Parser: NSObject, XMLParserDelegate {
 
     private struct Element {
         let name: String
-        let startIndex: String.Index
+        let startOffset: Int
         let attributes: [NSAttributedString.Key: Any]
     }
 
@@ -130,7 +130,7 @@ private final class Parser: NSObject, XMLParserDelegate {
         if elementName == "a", let url = attributeDict["href"].map(URL.init(string:)) {
             attributes[.link] = url
         }
-        let element = Element(name: elementName, startIndex: text.endIndex, attributes: attributes)
+        let element = Element(name: elementName, startOffset: text.count, attributes: attributes)
         elements.append(element)
     }
 
@@ -141,7 +141,7 @@ private final class Parser: NSObject, XMLParserDelegate {
         guard element.name == elementName else {
             return assertionFailure("Closing tag mismatch. Expected: \(element.name), got: \(elementName)")
         }
-        let range = NSRange(element.startIndex..<text.endIndex, in: text)
+        let range = NSRange(location: element.startOffset, length: text.count - element.startOffset)
         attributes.append((range, element.attributes))
     }
 

@@ -154,6 +154,42 @@ class FormattingsTests: XCTestCase {
         XCTAssertEqual(format("a<br/>b"), "a\u{2028}b")
         XCTAssertEqual(format("a<br />b"), "a\u{2028}b")
     }
+
+    // This used to result in a crash https://github.com/kean/Formatting/issues/1
+    // because of the String index mutation during `append`
+    func testCyrillicText() throws {
+        // GIVEN
+        let style = FormattedStringStyle(attributes: [
+            "body": [.font: UIFont(name: "HelveticaNeue-Light", size: 20)!],
+            "b": [.font: UIFont(name: "HelveticaNeue-Medium", size: 20)!]
+        ])
+
+        // WHEN
+        let input = "Если вы забыли свой пароль на новом устройстве, вам также будет отправлен <b>6-значный код проверки</b>"
+        let output = NSAttributedString(formatting: input, style: style)
+
+        // THEN
+        let allAttributes = output.attributes
+        XCTAssertEqual(allAttributes.count, 2)
+
+        do {
+            let body = try XCTUnwrap(allAttributes.first { $0.range == NSRange(0..<74) }?.attributes)
+            XCTAssertEqual(body.count, 1)
+
+            let font = try XCTUnwrap(body[.font] as? UIFont)
+            XCTAssertEqual(font.fontName, "HelveticaNeue-Light")
+            XCTAssertEqual(font.pointSize, 20)
+        }
+
+        do {
+            let bold = try XCTUnwrap(allAttributes.first { $0.range == NSRange(74..<96) }?.attributes)
+            XCTAssertEqual(bold.count, 1)
+
+            let font = try XCTUnwrap(bold[.font] as? UIFont)
+            XCTAssertEqual(font.fontName, "HelveticaNeue-Medium")
+            XCTAssertEqual(font.pointSize, 20)
+        }
+    }
 }
 
 private extension NSAttributedString {
