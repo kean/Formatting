@@ -190,6 +190,25 @@ class FormattingsTests: XCTestCase {
             XCTAssertEqual(font.pointSize, 20)
         }
     }
+
+    func testEmoji() throws {
+        // GIVEN
+        let style = FormattedStringStyle(attributes: [
+            "t": [.foregroundColor: UIColor.red]
+        ])
+
+        // WHEN
+        let input = "⚠ Text with <t>emoji</t>"
+        let output = NSAttributedString(formatting: input, style: style)
+
+        //  THEN
+        let allAttributes = output.attributes
+        XCTAssertEqual(allAttributes.count, 2)
+
+        let colorAttribute = try XCTUnwrap(allAttributes.first { $0.attributes.first?.key == NSAttributedString.Key.foregroundColor })
+        let range = colorAttribute.range
+        XCTAssertEqual((output.string as NSString).substring(with: range), "emoji")
+    }
 }
 
 private extension NSAttributedString {
