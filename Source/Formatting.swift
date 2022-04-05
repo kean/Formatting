@@ -118,6 +118,9 @@ private final class Parser: NSObject, XMLParserDelegate {
         let output = NSMutableAttributedString(string: text)
         // Apply tags in reverse, more specific tags are applied last.
         for (range, attributes) in attributes.reversed() {
+            let lb = text.index(text.startIndex, offsetBy: range.lowerBound)
+            let ub = text.index(text.startIndex, offsetBy: range.upperBound)
+            let range = NSRange(lb..<ub, in: text)
             output.addAttributes(attributes, range: range)
         }
         return output

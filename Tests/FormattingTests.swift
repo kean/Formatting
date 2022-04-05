@@ -198,7 +198,8 @@ class FormattingsTests: XCTestCase {
         ])
 
         // WHEN
-        let input = "⚠ Text with <t>emoji</t>"
+        // important: ⚠️ contains two unicode scalars
+        let input = "⚠️ Text with <t>emoji</t>"
         let output = NSAttributedString(formatting: input, style: style)
 
         //  THEN
