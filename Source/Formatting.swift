@@ -3,7 +3,13 @@
 // Copyright (c) 2020 Alexander Grebenyuk (github.com/kean).
 
 import Foundation
+#if !os(macOS)
 import UIKit
+#else
+import AppKit
+#endif
+
+
 
 public extension NSAttributedString {
     /// Initializes the string with the given formatted string.
