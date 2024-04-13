@@ -215,3 +215,24 @@ extension Regex {
         let groups: [Substring]
     }
 }
+
+#if swift(>=5.9) && DEBUG
+@available(iOS 17, *)
+#Preview {
+    let label = UILabel()
+    label.textColor = .black
+    label.numberOfLines = 0
+    label.textAlignment = .center
+
+    let input = "M1 delivers up to <b>2.8x faster</b> processing performance than the <a href='%@'>previous generation.</a>"
+    let text = String(format: input, "https://support.apple.com/kb/SP799")
+    let style = FormattedStringStyle(attributes: [
+        "body": [.font: UIFont.systemFont(ofSize: 15)],
+        "b": [.font: UIFont.boldSystemFont(ofSize: 15)],
+        "a": [.underlineColor: UIColor.clear]
+    ])
+    label.attributedText = NSAttributedString(formatting: text, style: style)
+
+    return label
+}
+#endif
