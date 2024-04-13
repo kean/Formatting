@@ -17,6 +17,12 @@ Result using standard `UILabel`:
 
 ![Screen Shot 2020-11-29 at 18 07 03](https://user-images.githubusercontent.com/1567433/100556269-29dc6380-326f-11eb-8afe-769d48706362.png)
 
+## Minimum Requirements
+
+| Versio          | Swift     | Xcode       | Platforms                                    |
+|-----------------|-----------|-------------|----------------------------------------------|
+| Formatting 4.0  | Swift 5.8 | Xcode 14.3  | iOS 12.0, tvOS 12.0, watchOS 5.0, macOS 10.5 |
+
 # License
 
 Formatting is available under the MIT license. See the LICENSE file for more info.
